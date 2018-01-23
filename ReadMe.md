@@ -55,18 +55,18 @@
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### Splash Activity
+## Splash Activity
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - 최초 app 화면으로, 앱의 진입점을 담당하는 Activity
 
-#### _issue_
+### _issue_
 
 - 자동로그인 관련 처리
 - gif파일 화면세팅 처리
 
-#### _How to solve?_
+### _How to solve?_
 
 > __자동로그인__
 
@@ -103,7 +103,7 @@ if(!ValidationUtil.isEmpty(token)) {
             setContentView(R.layout.activity_splash);
 ```
 
-> __Glide를 활용한 gif__파일 화면 세팅
+> __Glide를 활용한 gif파일 화면 세팅__
 
 - glide library를 활용하면 쉽게 gif파일을 세팅할 수 있다.
 - gif 프레임 추출 > 프레임 사이즈 최적화 > 프레임 저장
@@ -117,19 +117,19 @@ if(!ValidationUtil.isEmpty(token)) {
 ```
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### SignIn Activity
+## SignIn Activity
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - 일반 로그인과 google 로그인을 하는 로직이 담긴 Activity
 
-#### _issue_
+### _issue_
 
 - 로그인 시 자동로그인을 위한 token 값 저장
 - 로그인에 필요한 정규식과 정규식 조건 충족시 Rxbinding을 활용한 뷰 처리
 - google logIn
 
-#### _How to solve?_
+### _How to solve?_
 
 > __자동로그인__
 
@@ -139,7 +139,7 @@ if(!ValidationUtil.isEmpty(token)) {
  PreferenceUtil.setStringValue(this, ConstantUtil.AUTHORIZATION_FLAG, response.getToken());
 ```
 
-> 로그인 관련 __정규식__
+> __로그인 관련 정규식__
 
 - util성 클래스를 따로 만들어, SignIn Activity에서 이를 활용해서 처리
 
@@ -165,7 +165,7 @@ public class ValidationUtil {
 }
 ```
 
-> _Rxbinding_을 활용한 뷰 컨트롤
+> __Rxbinding을 활용한 뷰 컨트롤__
 
 - rxbinding을 하면 기존의 textWatcher를 활용한 것보다 코드가 간결하다.
 
@@ -189,20 +189,20 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-### SignUp Activity
+## SignUp Activity
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - 회원가입 과정을 통해 서버에 해당 정보를 등록하는 기능을 가진 Activity
 
 
-#### _issue_
+### _issue_
 
 - 회원가입 시 id, password 조건을 위한 정규식 세팅
 - 서버에 정보를 등록하는 networking
 
 
-#### _How to solve?_
+### _How to solve?_
 
 > 정규식 세팅 및 서버에 등록
 
@@ -249,23 +249,23 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 ```
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### Main Activity
+## Main Activity
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - App의 기둥이 되는 Activity로써, 6개의 fragment와 Bottom Navigation 등으로 구성되어 있다.
 - __검색기능__ 및 __frament들을 관리__하는 기능이 있다.
 - 로그인 및 로그아웃 등의 상황에 따른 로직을 관리하여 각 fragment에 필요한 데이터를 전달한다. 
 
-#### _issue_
+### _issue_
 
 - NavigationBar item에 전환에 따른 fragment 세팅
 - googleGcm 세팅
 - 로그인, 로그아웃 시에 따른 상황별 로직
 
-#### _How to solve?_
+### _How to solve?_
 
-> NavigationBar + fragment 세팅
+> __NavigationBar + fragment 세팅__
 
 - NavigationBar 아이템에 따른 fragment의 add 및 replace를 컨트롤하는 로직은 아래와 같다.
 - (참고) 총 6 개의 프래그먼트가 있고, 회원(비회원)이라는 조건에 따라 프로필을 담당하는 Mefragment(OffLineFragment)는 둘 중 하나만 NavigationBar에 세팅이 된다.
@@ -314,7 +314,7 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
                     }
 ```
 
-> google GCM 사용을 위한 BroadCastReceiver과 Service
+> __google GCM 사용을 위한 BroadCastReceiver과 Service__
 
 - 댓글을 달거나, 좋아요 등의 이벤트가 발생했을 때을 위한 notification관련 로직들이다.
 - 4대 컴포넌트 중 BradCastReceiver과 Service 기능이 담긴 로직들을 사용을 했다.
@@ -361,21 +361,21 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### HomeFragment(in MainActivity)
+## HomeFragment(in MainActivity)
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - ![home](https://user-images.githubusercontent.com/31605792/35291153-c4844b86-00af-11e8-9dfa-f0cf2a9af9a3.png)
 - 위와 같이 아이템들이 바둑판 형식으로 구성되어 있는 구조
 
-#### _issue_
+### _issue_
 
 - 바둑판 형식으로 구성되어 있는 레이아웃구조
 - 동적으로 추가될 수 있는 아이템들을 고려한 로직 
 
-#### _How to solve?_
+### _How to solve?_
 
-> __중첩된 recyclerView__와 __<List<Map<String,List<T>>>방식을 통해 중첩된 RecyclerView 데이터세팅__
+> __중첩된 recyclerView와 <List<Map<String,List<T>>>방식을 통해 중첩된 RecyclerView 데이터세팅__
 
 - 수직 방향으로 설정한 recyclerView 안에 아이템으로써 수평방향으로 설정한 recyclerView를 세팅
 - 편의상 필요한 부분의 로직만 가지고 옴.
@@ -421,9 +421,9 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### classActivity
+## classActivity
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - ![class](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
 - 수업컨텐츠를 클릭했을때 보여지는 Activity이다.
@@ -431,12 +431,12 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
 - 동영상을 시청할 수 있는 기능이 있다.
 - 탭레이아웃 + 프래그먼트 구조를 지니고 있다.
 
-#### _issue_
+### _issue_
 
 - Activity와 Fragment간 통신
 - exoLibrary를 활용한 동영상 시청하기 기능
 
-#### _How to solve?_
+### _How to solve?_
 
 > __bundle을 통해 통신__
 
@@ -475,7 +475,7 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
     }
 ```
 
-> __exoPlayer__ library 
+> __exoPlayer library__ 
 
 - 세팅과정
     1. ExoPlayer를 프로젝트에 종속성으로 추가한다.
@@ -570,18 +570,18 @@ private void initiatePlayer() {
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### LessonFragment(in ClassActivity)
+## LessonFragment(in ClassActivity)
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - ![lesson](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
 - content제작자(tutor)에 대한 정보를 나타내는 Activity
 
-#### _issue_
+### _issue_
 
 - Follow, Unfollow 토글버튼 클릭 이벤트 처리
 
-#### _How to solve?_
+### _How to solve?_
 
 > 여러 상황을 고려해서 처리
 
@@ -623,18 +623,18 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### AboutFragment(in ClassActivity)
+## AboutFragment(in ClassActivity)
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 - ![about](https://user-images.githubusercontent.com/31605792/35291194-eeb2c04a-00af-11e8-9506-6d04b8fae529.png)
 - 해당 컨텐츠가 가지고 있는 프로젝트, 리뷰, 구독자, 연관된 클래스를 정보를 나타내는 Activity
 
-#### _issue_
+### _issue_
 
 - seeAll(더보기)관련 처리
 
-#### _How to solve?_
+### _How to solve?_
 
 > constantUtil을 활용하여 더보기 처리
 
@@ -690,23 +690,23 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### discussionFragment
+## discussionFragment
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
-#### _issue_
+### _issue_
 
-#### _How to solve?_
+### _How to solve?_
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### GroupFragment 
+## GroupFragment 
 
-#### _구조 및 기능_
+### _구조 및 기능_
 
 ![group](https://user-images.githubusercontent.com/31605792/35291397-81bf61f4-00b0-11e8-8897-20ee18747653.png)
 
-#### _issue_
+### _issue_
 
-#### _How to solve?_
+### _How to solve?_
