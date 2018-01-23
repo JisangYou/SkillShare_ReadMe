@@ -1,43 +1,43 @@
-# SkillShare 사용 기술 stack(client, server 구분?)
+# SkillShare 사용 기술 stack
 
-## 사용 Library
+### 사용 Library
 
-### Layout 및 뷰 관련 library
+#### Layout 및 뷰 관련 library
 
 - cardview
 - bottom navigation
 - togglebutton
 - flexboxLayout
 
-### network 관련 library
+#### network 관련 library
 
 - retrofit2
     - gsonconverter, adapter-rxjava
 
 - okhttp
 
-### 동영상 관련 library
+#### 동영상 관련 library
 
 - exo player
 
-### LogIn 관련 library
+#### LogIn 관련 library
 
 - google login
 
-### notification 관련 library
+#### notification 관련 library
 
 - google cloud messaging
 
-### image loading 관련 library
+#### image loading 관련 library
 
 - glide
 
-### Reactive 관련 library
+#### Reactive 관련 library
 
 - rxandroid2
 - rxbinding2
 
-### 기타
+#### 기타
 
 - lambda
 
@@ -49,7 +49,7 @@
 
 - 사진 첨부
 
-## Application analysis
+# Application analysis
 
 
 ## Splash Activity
@@ -65,7 +65,7 @@
 
 ### _How to solve?_
 
-> __자동로그인__
+> __Preference로 자동로그인 처리__
 
 - 정상적으로 SignUp,SignIn이 이루어지면 해당 Token값이 Preference에 저장이 되고, 나중에 app을 켤때는 __Preference에 저장되어 있는 값을 다음과 같이 추출하는 과정__을 통해 자동으로 로그인을 할 수 있는 정보가 세팅이 된다.
 
@@ -100,7 +100,7 @@ if(!ValidationUtil.isEmpty(token)) {
             setContentView(R.layout.activity_splash);
 ```
 
-> __Glide를 활용한 gif파일 화면 세팅__
+> __Glide를 사용하여 gif파일 화면 세팅처리__
 
 - glide library를 활용하면 쉽게 gif파일을 세팅할 수 있다.
 - gif 프레임 추출 > 프레임 사이즈 최적화 > 프레임 저장
@@ -121,13 +121,13 @@ if(!ValidationUtil.isEmpty(token)) {
 
 ### _issue_
 
-- 로그인 시 자동로그인을 위한 token 값 저장
-- 로그인에 필요한 정규식과 정규식 조건 충족시 Rxbinding을 활용한 뷰 처리
+- 자동로그인을 위한 token 값 저장
+- 로그인에 필요한 로직
 - google logIn
 
 ### _How to solve?_
 
-> __자동로그인__
+> __Preference와 Token값을 사용해 자동로그인 처리__
 
 - 아래의 로직은 preference를 사용해 값을 저장하는 로직으로써, 확장성을 고려해서 PreferenceUtil이라는 클래스를 따로 만들어서 관리
  
@@ -135,7 +135,7 @@ if(!ValidationUtil.isEmpty(token)) {
  PreferenceUtil.setStringValue(this, ConstantUtil.AUTHORIZATION_FLAG, response.getToken());
 ```
 
-> __로그인 관련 정규식__
+> __정규식과 rxbinding을 사용해 로그인에 필요한 조건 처리__
 
 - util성 클래스를 따로 만들어, SignIn Activity에서 이를 활용해서 처리
 
@@ -160,9 +160,6 @@ public class ValidationUtil {
     }
 }
 ```
-
-> __Rxbinding을 활용한 뷰 컨트롤__
-
 - rxbinding을 하면 기존의 textWatcher를 활용한 것보다 코드가 간결하다.
 
 ```Java
@@ -193,13 +190,13 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ### _issue_
 
-- 회원가입 시 id, password 조건을 위한 정규식 세팅
+- 회원가입 시 요구되는 id, password 조건 
 - 서버에 정보를 등록하는 networking
 
 
 ### _How to solve?_
 
-> 정규식 세팅 및 서버에 등록
+> __정규식으로 회원가입시 요구되는 조건 처리__
 
 - 회원가입 전에 email, password 등의 정보들을 등록하는 과정은 위에서 언급했던 ValidationUtil을 사용해서 처리한다.
 - 정의해놓은 조건들을 모두 충족하게 되면, 서버에 등록하는 networking이 진행된다. 
@@ -235,6 +232,10 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
                 }
         );
 ```
+
+
+> __retrofit을 활용한 POST방식으로 회원가입 등록 처리__
+
 - 아래는 retrofit2을 사용하기 위한 interface양식이다.
 - Body를 POST방식으로 서버에 보내주면, 서버에서 받아서 Body에 담긴 정보들을 User모델에 세팅하는 과정이 실행된다.
 
@@ -259,13 +260,15 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ### _How to solve?_
 
-> __NavigationBar + fragment 세팅__
+> __getSupportFragmentManager와 replace를 사용해서 처리__
 
 - NavigationBar 아이템에 따른 fragment의 add 및 replace를 컨트롤하는 로직은 아래와 같다.
 - (참고) 총 6 개의 프래그먼트가 있고, 회원(비회원)이라는 조건에 따라 프로필을 담당하는 Mefragment(OffLineFragment)는 둘 중 하나만 NavigationBar에 세팅이 된다.
 - (참고2) 총 여섯개의 case가 있으나, 로직은 아래와 같기때문에 생략한다. 
 
+- TODO 체크필요
 ```Java
+
   bottomNavigation.setOnTabSelectedListener((int position, boolean wasSelected) -> {
             switch (position) {
                 case 0:
@@ -308,10 +311,10 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
                     }
 ```
 
-> __google GCM 사용을 위한 BroadCastReceiver과 Service__
+> __google GCM 코드참고__
 
-- 댓글을 달거나, 좋아요 등의 이벤트가 발생했을 때을 위한 notification관련 로직들이다.
-- 4대 컴포넌트 중 BradCastReceiver과 Service 기능이 담긴 로직들을 사용을 했다.
+- 댓글을 달거나, 좋아요 등의 이벤트가 발생했을 때을 위한 notification관련 로직이다.
+
 
 ```Java
    // Broad Cast Receiver
@@ -368,7 +371,7 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ### _How to solve?_
 
-> __중첩된 recyclerView와 <List<Map<String,List<T>>>방식을 통해 중첩된 RecyclerView 데이터세팅__
+> __중첩된 recyclerView로 처리__
 
 - 수직 방향으로 설정한 recyclerView 안에 아이템으로써 수평방향으로 설정한 recyclerView를 세팅
 - 편의상 필요한 부분의 로직만 가지고 옴.
@@ -574,7 +577,7 @@ private void initiatePlayer() {
 
 ### _How to solve?_
 
-> 여러 상황을 고려해서 처리
+> __아래 코드 참고__
 
 ```Java
 
@@ -626,7 +629,7 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 
 ### _How to solve?_
 
-> constantUtil을 활용하여 더보기 처리
+> __constantUtil을 활용하여 '더보기' 처리__
 
 - 앱내에 많은 더보기 기능을 처리하기 위해 constantUtil을 활용했다.
 - 더보기 클릭 이벤트가 일어날때 해당 키값으로 constantUtil에 정의 해놓은 값을 사용한다.
