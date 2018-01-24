@@ -311,7 +311,9 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
                     }
 ```
 
-> __google GCM 코드참고__
+> __google GCM guide 참고__
+
+![gcm](https://user-images.githubusercontent.com/31605792/35338510-7a769d02-0161-11e8-842b-db976779ef3d.png)
 
 - 댓글을 달거나, 좋아요 등의 이벤트가 발생했을 때을 위한 notification관련 로직이다.
 
@@ -472,6 +474,8 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
 
 > __exoPlayer library__ 
 
+![exoplayer](https://user-images.githubusercontent.com/31605792/35338505-79c72cd2-0161-11e8-8900-3f88c5fa0483.png)
+
 - 세팅과정
     1. ExoPlayer를 프로젝트에 종속성으로 추가한다.
     2. SimpleExoPlayer인스턴스를 만든다 .
@@ -480,11 +484,11 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
     5. 완료되면 플레이어를 넣는다.
 
 - 커스터마이징
-    - Renderer- Renderer라이브러리가 제공하는 기본 구현에서 지원되지 않는 미디어 유형을 처리 하는 사용자 정의를 구현할 수 있습니다 .
-    - TrackSelector- 커스텀을 구현 TrackSelector하면 앱 개발자가 a MediaSource로 노출 된 트랙을 사용 가능한 각각의 트랙 으로 선택 하는 방식을 변경할 수 있습니다 Renderer.
+    - Renderer- Renderer라이브러리가 제공하는 기본 구현에서 지원되지 않는 미디어 유형을 처리 하는 사용자 정의를 구현할 수 있습니다.(media를 decode하고 render해주는 역할을 한다.)
+    - TrackSelector- 커스텀을 구현 TrackSelector하면 앱 개발자가 a MediaSource로 노출 된 트랙을 사용 가능한 각각의 트랙 으로 선택 하는 방식을 변경할 수 있습니다.(선택된 트랙을 rendering and playback 해주는 역할을 한다.)
     - LoadControl- 사용자 정의를 구현 LoadControl하면 앱 개발자가 플레이어의 버퍼링 변경할 수 있다. 
-    - Extractor- 라이브러리에서 현재 지원되지 않는 컨테이너 형식을 지원해야하는 경우 사용자 정의 Extractor클래스를 구현하는 것을 고려한 다음 ExtractorMediaSource해당 유형의 미디어를 재생 하는 데 함께 사용할 수 있습니다.
-    - MediaSource- 사용자 정의 MediaSource클래스를 구현하는 것은 사용자 정의 방법으로 렌더러에 피드 할 미디어 샘플을 얻고 싶거나 사용자 정의 MediaSource합성 동작 을 구현하려는 경우에 적합 할 수 있습니다.
+    - Extractor- 라이브러리에서 현재 지원되지 않는 컨테이너 형식을 지원해야하는 경우 사용자 정의 Extractor클래스를 구현하는 것을 고려한 다음 ExtractorMediaSource해당 유형의 미디어를 재생 하는 데 함께 사용할 수 있습니다.(특정 MediaSource를 버퍼하는 방식을 컨트롤하는 역할을 한다.)
+    - MediaSource- 사용자 정의 MediaSource클래스를 구현하는 것은 사용자 정의 방법으로 렌더러에 피드 할 미디어 샘플을 얻고 싶거나 사용자 정의 MediaSource합성 동작 을 구현하려는 경우에 적합 할 수 있습니다. (어떤 media가 재생될지 어떻게 load 될지 컨트롤 해주는 역할)
     - DataSource- ExoPlayer의 업스트림 패키지에는 DataSource다양한 사용 사례에 대한 여러 가지 구현이 이미 포함되어 있습니다 . DataSource사용자 지정 프로토콜을 통해, 사용자 지정 HTTP 스택을 사용하여 또는 사용자 지정 영구 캐시에서와 같이 다른 방식으로 데이터를로드하기 위해 자체 클래스 를 구현할 수 있습니다 .
 
 - [exoplayerGuide](http://google.github.io/ExoPlayer/guide.html)
