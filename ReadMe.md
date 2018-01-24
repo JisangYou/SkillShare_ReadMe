@@ -45,10 +45,6 @@
 
 - 사진첨부
 
-## DB Modeling
-
-- 사진 첨부
-
 # Application analysis
 
 
@@ -56,6 +52,7 @@
 
 ### _구조 및 기능_
 
+![splash](https://user-images.githubusercontent.com/31605792/35350273-c9a74c9a-0180-11e8-84cb-5e1cd7c337f1.png)
 - 최초 app 화면으로, 앱의 진입점을 담당하는 Activity
 
 ### _issue_
@@ -117,6 +114,7 @@ if(!ValidationUtil.isEmpty(token)) {
 
 ### _구조 및 기능_
 
+![signin](https://user-images.githubusercontent.com/31605792/35350274-c9d2f75a-0180-11e8-930f-514c96be12a7.png)
 - 일반 로그인과 google 로그인을 하는 로직이 담긴 Activity
 
 ### _issue_
@@ -185,14 +183,13 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ### _구조 및 기능_
 
+![signup](https://user-images.githubusercontent.com/31605792/35350272-c9792e46-0180-11e8-9d4a-88c1096c43de.png)
 - 회원가입 과정을 통해 서버에 해당 정보를 등록하는 기능을 가진 Activity
-
 
 ### _issue_
 
 - 회원가입 시 요구되는 id, password 조건 
 - 서버에 정보를 등록하는 networking
-
 
 ### _How to solve?_
 
@@ -377,7 +374,6 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 - 수직 방향으로 설정한 recyclerView 안에 아이템으로써 수평방향으로 설정한 recyclerView를 세팅
 - 편의상 필요한 부분의 로직만 가지고 옴.
-
 - 아래와 같이 holder에 리싸이클러뷰를 만들어 주고, onBindViewHolder에 수평방향의 recyclerView를 만들어줌으로써 처리했다.
 - outer recyclerView안에 아이템으로써의 inner recycler뷰를 map<String, List<T>>가 같은 형태로 으로 제어했다.
 - 그 이유는 추후에 inner recycler뷰가 동적으로 추가될 경우가 있고, 그 안에 데이터를 넣기위해서는 map형태로 키값을 찾아 그 안에 데이터를 넣게 해주기 위함이다.   
@@ -417,12 +413,12 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
 
 ```
 
-
 ## classActivity
 
 ### _구조 및 기능_
 
 ![class](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
+
 - 수업컨텐츠를 클릭했을때 보여지는 Activity이다.
 - skillShare에서 제공하는 핵심 컨텐츠
 - 동영상을 시청할 수 있는 기능이 있다.
@@ -472,9 +468,10 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
     }
 ```
 
-> __exoPlayer library__ 
 
-![exoplayer](https://user-images.githubusercontent.com/31605792/35338505-79c72cd2-0161-11e8-8900-3f88c5fa0483.png)
+> __ExoPlayer library를 사용하여 동영상 처리__ 
+
+![Exoplayer](https://user-images.githubusercontent.com/31605792/35338505-79c72cd2-0161-11e8-8900-3f88c5fa0483.png)
 
 - 세팅과정
     1. ExoPlayer를 프로젝트에 종속성으로 추가한다.
@@ -686,7 +683,7 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 ```
 
 
-## discussionFragment
+## discussionFragment(in ClassActivity)
 
 ### _구조 및 기능_
 
@@ -970,7 +967,7 @@ Bus.getInstance().post(data);
 ```
 
 
-## GroupFragment 
+## GroupFragment(in MainActivity)
 
 ### _구조 및 기능_
 
@@ -978,4 +975,381 @@ Bus.getInstance().post(data);
 
 ### _issue_
 
+- 화면 구성 및 통신
+- groupActivity와의 통신(group Activity에서 [join group]를 누르면 groupFragment의 [my Groups]이라는 카테고리 밑에 해당 Group이 추가되는 것)
+- 즉, [my Groups]라는 하나의 View안에는 recyclerView가 있는데 그 안에 item이 group Activity에서 버튼 이벤트에 의해 생성되거나 사라지는 것
+
 ### _How to solve?_
+
+> __화면구성은 ScrollView안에 3개의 RecyclerView를 만들어 구성했고, GroupActivity와 통신을 해야하므로 Custom한 Bus를 사용해 등록해서 처리했다.__
+
+- original application 분석결과, homeFragment와 달리 GroupFragment는 RecyclerView가 사용자의 행위에 따라 추가생성 되지 않기 때문이다.
+- 상기와 같은 이유로, 각 카테고리마다 RecyclerView 세팅을 하는 과정이 있다. 
+
+```JAVA
+@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_group, container, false);
+
+        context = getActivity();
+        // 카테고리별 RecyclerView setting : my Groups
+        RecyclerView myGroupsRecyclerView = view.findViewById(R.id.my_groups_recycler_view);
+        myGroupsRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+        mAdapter = new GroupRecyclerViewAdapter(context);
+        myGroupsRecyclerView.setAdapter(mAdapter);
+        // 카테고리별 RecyclerView setting : feature Groups
+        RecyclerView featuredGroupsRecyclerView = view.findViewById(R.id.featured_groups_recycler_view);
+        featuredGroupsRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+        fAdapter = new GroupRecyclerViewAdapter(context);
+        featuredGroupsRecyclerView.setAdapter(fAdapter);
+        // 카테고리별 RecyclerView setting : recently Active Groups
+        RecyclerView recentlyActiveGroupsRecyclerView = view.findViewById(R.id.recently_active_groups_recycler_view);
+        recentlyActiveGroupsRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+        rAdapter = new GroupRecyclerViewAdapter(context);
+        recentlyActiveGroupsRecyclerView.setAdapter(rAdapter);
+
+        // RecyclerView마다 다른 id가 있는 고유한 View이지만 그 안에 들어가는 데이터 타입이나 형식 등은 같기 때문에 Adapter는 하나로 통일했다.
+
+        RetrofitHelper.createApi(HomeService.class)
+                .getGroups()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::handleResponse, this::handleError);
+        // RecyclerView가 세팅이 되어 있으므로, 서버에서 데이터를 넣어만 주면 된다.
+
+        Bus.getInstance().register(this);
+        // GroupActivity와 통신을 위해서 등록하는 과정이다.
+
+        return view;
+    }
+
+    private void handleResponse(Map<String, List<Group>> groups) {
+          
+        StateUtil state = StateUtil.getInstance();
+
+        if(state.getState()) {
+            if(state.getUserInstance().getGroups() != null) {
+                mAdapter.update(state.getUserInstance().getGroups());
+                // my Groups는 사용자(나)가 선택한 그룹들이 있어야 하므로, 사용자 체크(싱글톤)를 해준 후 User model 이 가지고 있는 Groups을 세팅해준다.
+            }
+        }
+
+        List<Group> featuredGroups = groups.get("Featured Groups");
+        fAdapter.update(featuredGroups);
+
+        List<Group> recentlyActiveGroups = groups.get("Recently Active Groups");
+        rAdapter.update(recentlyActiveGroups);
+
+        // 상기 2개의 Groups은 Map<String, List<Group>> groups를 인자로 받은 것에 따라, groups.get(object Key)에 따라 서버에서 보내준 String값과 맞으면 list가 들어온다.
+     
+    }
+```
+-   어댑터.update(/* list */)가 호출될 때에는 GroupRecyclerViewAdapter 안에 만들어 놓은 update method 아래 다음과 같이 notifyDataSetChanged를 호출해 변동사항을 알려준다. 
+
+```JAVA
+
+    public void update(List<Group> groups) {
+        this.groups = groups;
+        notifyDataSetChanged();
+    }
+
+```
+## GroupActivity
+
+### _구조 및 기능_
+
+![groupactivity](https://user-images.githubusercontent.com/31605792/35341393-e93188d6-0168-11e8-86e5-43090a7895f6.png)
+- Group member들과 댓글을 달면서 Communication을 할 수 있는 Activity이다.
+- GroupFragment에서 item클릭시 이동화면이다.
+
+### _issue_
+
+- 로그인, 로그아웃 시, 그룹멤버일때와 아닐때에 따라 다른 이벤트 처리
+- [joinGroups]라는 버튼을 누르면 message를 보낼 수 있는 창으로 변하면서, GroupFragment my Groups 카테고리 밑에 해당 item이 추가
+- recyclerView scroll 시에 데이터를 특정 개수만큼만 받아오는 이슈
+
+
+### _How to solve?_
+
+> __DialogUtil을 사용해 로그인, 로그아웃 시에 따라 다른 이벤트 처리__
+
+```Java
+ if(state.getState()) {
+            if(state.getUserInstance().getGroups() != null) {
+                if(state.getUserInstance().getGroups().contains(mGroup)) {
+                    buttonJoinGroup.setVisibility(View.GONE);
+                    layout_discussion.setVisibility(View.VISIBLE);
+                } else {
+                    buttonJoinGroup.setOnClickListener(v -> { // 그룹멤버가 아니고 
+                        if(state.getUserInstance().getNickname() == null || state.getUserInstance().getNickname().equals("")) { // 별명이 없을 때
+                            AlertDialog dialog = DialogUtil.showSettingNicknameDialog(this); // DialogUtil에 만들어놓은 AlertDialog 사용한다.
+                            dialog.setOnDismissListener(d -> { // 이하 dialog View안에서 처리하는 로직들
+                                if(state.getUserInstance().getNickname() != null) {
+                                    buttonJoinGroup.setVisibility(View.GONE);
+                                    layout_discussion.setVisibility(View.VISIBLE);
+
+                                    RetrofitHelper.createApi(UserService.class)
+                                            .joinGroup(mGroup, state.getUserInstance().get_id())
+                                            .subscribeOn(Schedulers.io())
+                                            .observeOn(Schedulers.io())
+                                            .subscribe(
+                                                    (Response response) -> {
+                                                        if(ConstantUtil.SUCCESS.equals(response.getResult())) {
+                                                            state.getUserInstance().getGroups().add(mGroup);
+                                                            Bus.getInstance().post(state.getUserInstance().getGroups()); // GroupFragment에서 등록한 것을 불러옴.
+                                                        } else {
+                                                            // TODO 실패 메시지
+                                                            Log.d("JUWONLEE","failed");
+                                                        }
+
+                                                    }, (Throwable error) -> {
+                                                        Log.e("join group error :  ", error.getMessage());
+                                                    }
+                                            );
+                                } else {
+                                    buttonJoinGroup.setVisibility(View.VISIBLE);
+                                    layout_discussion.setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    });
+                }
+            } else { // User가 로그인은 되어 있으나, 가지고 있는 Group이 없을 떄
+                buttonJoinGroup.setOnClickListener(v -> {
+                    buttonJoinGroup.setVisibility(View.GONE);
+                    layout_discussion.setVisibility(View.VISIBLE);
+
+                    RetrofitHelper.createApi(UserService.class)
+                            .joinGroup(mGroup, state.getUserInstance().get_id())
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    (Response response) -> {
+                                        if(ConstantUtil.SUCCESS.equals(response.getResult())) {
+                                            state.getUserInstance().setGroups(new ArrayList<>()); // user모델에 리스트 생성해주고
+                                            state.getUserInstance().getGroups().add(mGroup); // 그 안에 join 그룹한 것을 추가해주고
+                                            Bus.getInstance().post(state.getUserInstance().getGroups()); // 해당 그룹에 대한 정보를 가지고 온다.
+                                        }
+
+                                        else {
+                                            // TODO 실패 메시지
+                                        }
+
+                                    }, (Throwable error) -> {
+                                        Log.e("join group error :  ", error.getMessage());
+                                    }
+                            );
+                });
+            }
+        } else {
+            buttonJoinGroup.setOnClickListener(v -> {
+                DialogUtil.showSignDialog(this);
+            });
+        }
+```
+> __Interface, recyclerView listener, 그리고 handler로 데이터를 원하는 만큼 받아오는 것 처리__
+
+- GroupActivity에 recyclerView Sroll시 처리 로직
+```Java
+mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager llManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (llManager.findLastCompletelyVisibleItemPosition() == (mAdapter.getItemCount() - 4)) { // 스크롤링 하면서, 마지막 item-4정도에
+                    mAdapter.setMore(true); // adapter에 true값을 넣고
+                    mAdapter.showLoading(); // 더보여주는 함수를 호출한다.(setmore,showLoading관련 메소드는 adapter에서 처리하므로 밑에 참고한다.)
+                }
+            }
+        });
+    // 중략...
+
+    //  GroupCommentAdapter에서 정의한 interface onLoadMore를 GroupActivity에서 implements해서 override한 것이다.
+    // 참고 public class GroupActivity extends AppCompatActivity implements GroupCommentAdapter.OnLoadMoreListener, GroupCommentAdapter.InteractionInterface{..생략}
+    @Override
+    public void onLoadMore() {
+        RetrofitHelper.createApi(GroupService.class)
+                .getComments(groupId, mAdapter.getItemCount()-1)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        (List<Comment> comments) -> {
+                            mAdapter.dismissLoading(); // 스크롤링하면서 지나간 데이터는 지우고
+                            mAdapter.addItemMore(comments); // 새로운 데이터를 추가한다(데이터가 있다면)
+                            if(comments.size() < 20) {
+                                mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                                    @Override
+                                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                                        super.onScrolled(recyclerView, dx, dy);
+                                    }
+                                });
+                            }
+                        }, (Throwable error) -> {
+
+                        }
+                );
+    }
+```
+- 다음은 Adapter에서 setmore, showLoading 메서드 처리
+
+```Java
+public class GroupCommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    final int VIEW_ITEM = 1;
+    final int VIEW_PROG = 0;
+
+    ArrayList<Comment> comments;
+
+    Context context;
+    OnLoadMoreListener onLoadMoreListener;
+    InteractionInterface interactionInterface;
+
+    boolean isMoreLoading = true;
+
+    public interface OnLoadMoreListener { // 인터페이스 정의, 
+        void onLoadMore();
+    }
+
+    public GroupCommentAdapter(Context context) {
+        this.context = context;
+
+        if(context instanceof OnLoadMoreListener) {
+            this.onLoadMoreListener = (OnLoadMoreListener) context;
+        }
+
+        if(context instanceof InteractionInterface) {
+            this.interactionInterface = (InteractionInterface) context;
+        }
+
+        comments = new ArrayList<>();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return comments.get(position) != null ? VIEW_ITEM : VIEW_PROG;
+    }
+
+    @Override
+
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == VIEW_ITEM) {  // 위에 정의해놓은 getItemViewType에 따라 inflate하는 것에 차이를 두어 처리
+            return new GroupChattingHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item_comment, parent, false)); 
+        } else {
+            return new ProgressViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_progress, parent, false)); // progressbar 세팅
+        }
+    }
+
+    public void showLoading() {
+        if (isMoreLoading && comments != null && onLoadMoreListener != null) { // 메소드호출한곳에서 이 조건이 맞으면,
+            isMoreLoading = false; // true를 false로 바꿔주고, 
+
+            new Handler().post(() -> { // 핸들러 처리를 한다.
+                // progress bar holder 호출
+                comments.add(null);
+                notifyItemInserted(comments.size() - 1); // 아이템 추가
+                // data load
+                onLoadMoreListener.onLoadMore(); // 콜백
+            });
+        }
+    }
+
+    public void setMore(boolean isMore) { 
+        this.isMoreLoading = isMore;
+    }
+
+    public void dismissLoading() { // 지나간 데이터는 지운다
+        if (comments != null && comments.size() > 0) {
+            comments.remove(comments.size() - 1);
+            notifyItemRemoved(comments.size());
+        }
+    }
+
+    public void addAll(List<Comment> lst) {
+        comments.clear();
+        comments.addAll(lst);
+        notifyDataSetChanged();
+    }
+
+    public void addItemMore(List<Comment> lst) { 
+        int sizeInit = comments.size();
+        comments.addAll(lst);
+        notifyItemRangeChanged(sizeInit, comments.size()); // comments.size부터 comments.size개수만큼 즉, 예를들어 20번째 부터, 20번이 추가되므로 20~40 
+    }
+
+    public void addItem(Comment comment) {
+        comments.add(0, comment);
+        notifyItemInserted(0);
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof GroupChattingHolder) {
+            Comment comment = comments.get(position);
+
+            GroupChattingHolder chatHolder = (GroupChattingHolder) holder;
+
+            chatHolder.userId = comment.getUserId();
+            chatHolder.textViewName.setText(comment.getUserName());
+            chatHolder.textViewNickname.setText(comment.getUserNickname());
+            if(comment.getComment().contains("@")) {
+                int index = comment.getComment().indexOf("@");
+
+            }
+            chatHolder.expandableTextView.setText(comment.getComment());
+            chatHolder.textViewTime.setText(TimeUtil.calculateTime(comment.getTime()));
+        }
+    }
+
+
+    @Override
+    public int getItemCount() {
+        return comments.size();
+    }
+
+    public class GroupChattingHolder extends RecyclerView.ViewHolder {
+
+        String userId;
+        ImageView imageViewProfile;
+        TextView textViewName, textViewNickname, textViewTime;
+        ExpandableTextView expandableTextView;
+        TextView reply;
+
+        public GroupChattingHolder(View v) {
+            super(v);
+            imageViewProfile = v.findViewById(R.id.image_view_profile);
+            imageViewProfile.setOnClickListener(
+                    view -> {
+                        Intent intent = new Intent(context, ProfileActivity.class);
+                        intent.putExtra(ConstantUtil.USER_ID_FLAG, userId);
+                        context.startActivity(intent);
+                    }
+            );
+            textViewName = v.findViewById(R.id.text_view_user_name);
+            textViewNickname = v.findViewById(R.id.text_view_user_nickname);
+            expandableTextView = v.findViewById(R.id.expandable_text_view);
+            expandableTextView.setTrimLength(8);
+            textViewTime = v.findViewById(R.id.text_view_time);
+            reply = v.findViewById(R.id.text_view_reply);
+            reply.setOnClickListener(
+                    view -> {
+                        interactionInterface.reply(textViewNickname.getText().toString());
+                    }
+            );
+        }
+    }
+
+    public class ProgressViewHolder extends RecyclerView.ViewHolder {
+        public ProgressBar pBar;
+
+        public ProgressViewHolder(View v) {
+            super(v);
+            pBar = v.findViewById(R.id.pBar);
+        }
+    }
+
+    public interface InteractionInterface {
+        void reply(String nickname);
+    }
+}
+```
