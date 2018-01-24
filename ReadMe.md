@@ -361,7 +361,7 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ### _구조 및 기능_
 
-- ![home](https://user-images.githubusercontent.com/31605792/35291153-c4844b86-00af-11e8-9dfa-f0cf2a9af9a3.png)
+![home](https://user-images.githubusercontent.com/31605792/35291153-c4844b86-00af-11e8-9dfa-f0cf2a9af9a3.png)
 - 위와 같이 아이템들이 바둑판 형식으로 구성되어 있는 구조
 
 ### _issue_
@@ -420,7 +420,7 @@ public class HomeRecyclerViewAdapter extends RecyclerView.Adapter<HomeRecyclerVi
 
 ### _구조 및 기능_
 
-- ![class](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
+![class](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
 - 수업컨텐츠를 클릭했을때 보여지는 Activity이다.
 - skillShare에서 제공하는 핵심 컨텐츠
 - 동영상을 시청할 수 있는 기능이 있다.
@@ -568,7 +568,7 @@ private void initiatePlayer() {
 
 ### _구조 및 기능_
 
-- ![lesson](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
+![lesson](https://user-images.githubusercontent.com/31605792/35291171-d9447ca8-00af-11e8-90c7-90ad6a3c9f34.png)
 - content제작자(tutor)에 대한 정보를 나타내는 Activity
 
 ### _issue_
@@ -620,7 +620,7 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 
 ### _구조 및 기능_
 
-- ![about](https://user-images.githubusercontent.com/31605792/35291194-eeb2c04a-00af-11e8-9506-6d04b8fae529.png)
+![about](https://user-images.githubusercontent.com/31605792/35291194-eeb2c04a-00af-11e8-9506-6d04b8fae529.png)
 - 해당 컨텐츠가 가지고 있는 프로젝트, 리뷰, 구독자, 연관된 클래스를 정보를 나타내는 Activity
 
 ### _issue_
@@ -686,17 +686,291 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 
 ### _구조 및 기능_
 
+- 로그인이 되어 있는 사용자들이 자신들의 의견을 기재하는 Activity
+- 의견과 의견에 대한 [댓글 및 좋아요]가 가능하다.(댓글, 대댓글의 구조)
+
+
 ### _issue_
+
+- [의견]과 [의견에 대한 댓글] 및 [좋아요] 기능 구현
+- [의견이 있는 프래그먼트]와 [해당 의견에 대한 모든 댓글이 있는 액티비티]간에 원할한 데이터 전달
 
 ### _How to solve?_
 
+> __의견을 입력하는 칸에 텍스트 입력 후 button이벤트가 발생할떄 의견(discussion) model을 만들어 서버에 전송__
+
+- 아래와 같은 method를 버튼 이벤트 일어날때 세팅시킨다.
+
+```Java
+public void sendDiscussion() {
+        String input = editText.getText().toString(); // edittext view에 입력하는 값을 가지고 있는 input 변수 선언
+        if( !ValidationUtil.isEmpty(input) ) { /
+            editText.setText("");                      // 초기화
+            User user = StateUtil.getInstance().getUserInstance(); // 싱글톤으로 가지고 온 user 객체
+            Discussion리discussion = new Discussion(     // 정의 해놓은 Discussion 모델에 필요한 정보를 기입.
+                    user.getName(),
+                    user.getImageUrl(),
+                    input,                              // 사용자가 입력한 내용
+                    System.currentTimeMillis()+"",
+                    "0",
+                    user.get_id(),
+                    user.getRegistrationId(),
+                    new ArrayList<>(),
+                    new ArrayList<>()
+            );
+
+            RetrofitHelper.createApi(ClassService.class)
+                    .sendDiscussion(discussion, classId)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::handleResponse, this::handleError);
+
+            // 사용자의 정보 및 해당 클래스의 id를 서버로 POST방식으로 보낸다.
+           
+           List<Discussion> discussions;
+
+private void handleResponse(List<Discussion> discussions) { 
+        Collections.reverse(discussions); // 서버에서 데이터를 받아올떄, Collections.reverse()를 함으로써, 가장 최신의 의견을 가장 위로 세팅시킨다.
+        this.discussions = discussions;
+
+        // TODO list reverse or get data by sort
+        
+        if(discussions == null || discussions.size() == 0) {
+            textViewDiscussion.setVisibility(View.GONE);
+        } else {
+            if(textViewDiscussion.getVisibility() == View.VISIBLE) {// update 시에는 새롭게 갱신해준다. >>> recycler view 위치 초기화
+                adapter.updateData(discussions);
+            } else {
+                adapter.initiateData(discussions);
+                textViewDiscussion.setVisibility(View.VISIBLE);
+            }
+
+            textViewDiscussion.setText(discussions.size() + " Discussions");
+        }
+        // TODO hide progress bar
+    }
+        }
+    }
+```
+
+> __의견에 대한 [댓글]과 [좋아요]는  DiscussionsAdapter에서 처리, 의견에 대한 모든 [댓글]은 DiscussionSeeAllRecyclerViewAdapter 처리__
+
+- 리싸이클러뷰 아이템을 의견과 댓글이 합쳐진 형태로 만들고, 조건에 따라 visible, invisible로 처리
+- 의견에 대한 좋아요는 DiscussionAdapter onBindViewHolder에서 로직처리
+- 의견에 대한 댓글은 constantUtil 값을 사용, SeeAllActivity으로 인텐트에 정보 넘겨서 로직 처리
+
+- [좋아요] 처리 로직
+```Java
+// 좋아요 처리
+
+if(StateUtil.getInstance().getState()) {
+                if(discussion.getLikeUsersIds() != null && discussion.getLikeUsersIds().size() != 0) {
+                    String userId = StateUtil.getInstance().getUserInstance().get_id();
+                    if(discussion.getLikeUsersIds().contains(userId)) // 사용자(나)가 좋아요를 이미 누른 경우, 좋아요 버튼은 클릭이 되어 있는 상태로 세팅
+                        holder.imageButtonLike.setChecked(true);
+                }
+
+                // 이하 좋아요를 눌렀을때, 취소했을 때 처리
+                User user = StateUtil.getInstance().getUserInstance();
+                holder.imageButtonLike.setOnCheckedChangeListener(
+                        (buttonView, isChecked) -> {
+                            if(isChecked) {
+                                RetrofitHelper.createApi(ClassService.class)
+                                        .like(new LikeRequestBody(holder.discussionId, user.get_id(), user.getName(), holder.resId))
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(
+                                                (Response response) -> {
+                                                    String likeCount = response.getResult();
+                                                    discussion.setLikeCount(likeCount);
+                                                    holder.textViewLikeCount.setText(likeCount);
+                                                }, (Throwable error) -> {
+                                                    Log.d("JUWON LEE", "error : " + error.getMessage());
+                                                }
+                                        );
+                            } else {
+                                RetrofitHelper.createApi(ClassService.class)
+                                        .unLike(new LikeRequestBody(holder.discussionId, user.get_id(), user.getName(), holder.resId))
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(
+                                                (Response response) -> {
+                                                    String likeCount = response.getResult();
+                                                    discussion.setLikeCount(likeCount);
+                                                    holder.textViewLikeCount.setText(likeCount);
+                                                }, (Throwable error) -> {
+                                                    Log.d("JUWON LEE", "error : " + error.getMessage());
+                                                }
+                                        );
+                            }
+                        }
+                );
+            } 
+```
+
+- [의견에 대한 댓글] 처리로직
+
+```Java
+ public void setReply(List<Reply> replies) {
+
+            this.replies = replies;
+
+            if(replies != null && replies.size() != 0) { 
+                textViewReplyProfile.setVisibility(View.VISIBLE);
+                textViewTimeReply.setVisibility(View.VISIBLE);
+                imageViewReplyProfile.setVisibility(View.VISIBLE);
+                expandableTextViewReply.setVisibility(View.VISIBLE);
+
+                int size = replies.size();
+                if( size >= 2 ) {
+                    textViewReplies.setText("See all " + replies.size() + " replies");
+                    textViewReplies.setVisibility(View.VISIBLE);
+                    textViewReplies.setOnClickListener(this);
+                }
+
+                Reply reply = replies.get(replies.size()-1);
+                textViewReplyProfile.setText(reply.getName());
+                textViewTimeReply.setText( TimeUtil.calculateTime(reply.getTime()) );
+
+                if(reply.getImageUrl() != null)
+                    Glide.with(context).load(reply.getImageUrl())
+                            .apply(RequestOptions.circleCropTransform())
+                            .into(imageViewReplyProfile);
+
+                expandableTextViewReply.setTrimLength(4);
+                expandableTextViewReply.setText(reply.getContent(), TextView.BufferType.NORMAL);
+            } else {
+                textViewReplyProfile.setVisibility(View.GONE);
+                textViewTimeReply.setVisibility(View.GONE);
+                imageViewReplyProfile.setVisibility(View.GONE);
+                expandableTextViewReply.setVisibility(View.GONE);
+                textViewReplies.setVisibility(View.GONE);
+            }
+        }
+```
+
+> __Fragment와 Activity간 원활한 통신은 eventBus library의 작동방식을 참고로 해서 Cusomize한 방식으로 처리__
+
+- EventBus library?
+
+![EventBus](http://cfile4.uf.tistory.com/image/2271424F5591DD5D0B5077)
+
+- 사용방법
+
+```java
+
+1. 이벤트 리스너를 등록해준다(Subscriber)
+2. 이벤트가 발생했을때 수행할 작업을 만들어 둔다(Subscriber)
+3. 이벤트가 발생하는 위치에서 이벤트가 발생했다고 알린다(Publisher)
+4. 해당 이벤트에서 원하는 변수,리스트 등을 받아서 작업을 처리한다(Subscriber)
+5. 이벤트 리스너를 등록해제해준다(Subscriber)
+
+출처: http://gun0912.tistory.com/4 [박상권의 삽질블로그]
+
+```
+
+- 아래에 코드는 eventBus를 커스터마이징 해서 적용했다.
+- reflection이라는 자바 API 사용(구체적인 클래스 타입을 알지 못해도, 그 클래스의 메소드, 타입, 변수들을 접근 할 수 있도록 해주는 자바 API)
+
+```Java
+
+public class Bus { // 이 클래스가 필요한 프래그먼트 및 액티비티가 더 있기때문에 따로 클래스를 만들어 모듈화
+
+    Map<Class<?>, Subscription> subscriptionByType; // 맵 형태로 클래스별로 해당 구독자를 구별할 수 있다. 
+
+    static Bus instance; // static으로 선언함으로써 어느 곳에서나 사용가능
+
+    public static Bus getInstance() { // 싱글톤으로 만들어주면서, 객체의 유일성 보장
+        if(instance == null) {
+            instance = new Bus();
+        }
+        return instance;
+    }
+
+    private Bus() { // 여러 클래스에서 사용이 될 것이므로, map으로 초기화 해준다.
+        subscriptionByType = new HashMap<>();
+    }
+
+    public void register(Object subscriber) { // 이 구독이라고 명명한 메소드는 object타입을 인자를 받음으로써, 해당 클래스를 객체를 받아오기 위한 것이다.
+        Class<?> subscriberClass = subscriber.getClass(); // 해당 클래스를 얻어온다는 의미
+        SubscriberMethod subscriberMethod = getMethod(subscriberClass); // 해당 클래스의 메소드를 가져와서 세팅, getMethod 아래에 정의
+        subscribe(subscriber, subscriberMethod); // subscribe 아래 정의되어 있음.
+    }
+
+    private void subscribe(Object subscriber, SubscriberMethod subscriberMethod) {
+        if(subscriptionByType != null) {
+            subscriptionByType.put(subscriberMethod.type, new Subscription(subscriber, subscriberMethod)); 
+            // map으로 정의 해놓은 subscriptionByType에 미리지정한 subscriberMethod 클래스와 Subscription 클래스에 형태에 맞게 인자를 넣는다. 
+        }
+    }
+
+    public void post(Map<Integer, List<Reply>> data) {
+        invokeSubscriber(subscriptionByType.get(java.util.Map.class), data);
+    }
+
+    private void invokeSubscriber(Subscription subscription, Map<Integer, List<Reply>> data) {
+        try {
+            subscription.subscriberMethod.method.invoke(subscription.subscriber, data); // invoke() : Method 클래스의 메서드, 동적으로 호출된 메서드의 결과(Object) 리턴
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //...중략
+
+    private SubscriberMethod getMethod(Class<?> subscriberClass) { 
+        for(Method method : subscriberClass.getMethods())   // getMethods()는 클래스API에 정의 되어 있다. Naming 그대로, 클래스의 메소드을 배열형태로 가지고 온다 
+        {                                                   // 해당 클래스의 메소드들은 여러개인 경우가 대부분이기에 반복문을 돌면서,
+             Subscribe annotation = method.getAnnotation(Subscribe.class);  // 반복문을 돌면서 해당 클래스에 지정한 어노테이션을 구한다. 슈퍼 클래스의 어노테이션도 포함한다.
+            if(annotation != null) { // annotation null check
+                Class<?>[] parameters = method.getParameterTypes();         // 해당 메소드의 파라미터 타입 알아내는 과정
+                if(parameters.length == 1) {
+                    return new SubscriberMethod(method, parameters[0]); 
+                }
+            }
+        }
+
+        return null;
+    }
+}
+```
+- Subscribe Interface
+
+```Java
+@Documented // doc 에 '어노테이션' 정보 저장
+@Retention(RetentionPolicy.RUNTIME) // RUNTIME : '어노테이션' 이 class 파일에 저장되고 읽혀진다.
+
+// @Retention(RetentionPolicy.CLASS) // 컴파일러가 클래스를 참조할 때까지 유효하다.
+// @Retention(RetentionPolicy.SOURCE) // 어노테이션 정보는 컴파일 이후 없어진다.
+
+@Target({ElementType.METHOD}) // 해당 '어노테이션' 을 붙일 element 타입 설정
+public @interface Subscribe {
+//    boolean isSubscribe() default true;
+}
+```
+- Subscription, SubscriberMethod 클래스는 communication_util package에 있으므로 생략한다.
+- 이렇게 커스터마이징을 한 클래스를 사용하는 코드는 아래와 같다. 
+- 이벤트를 등록하는 부분의 코드
+
+```Java
+
+ Bus.getInstance().register(this);
+
+```
+- 등록한 이벤트를 불러오는 코드
+
+```Java
+
+Bus.getInstance().post(data);
+
+```
 
 
 ## GroupFragment 
 
 ### _구조 및 기능_
 
-![group](https://user-images.githubusercontent.com/31605792/35291397-81bf61f4-00b0-11e8-8897-20ee18747653.png)
+![group](https://user-images.githubusercontent.com/31605792/35321978-faa8238c-012b-11e8-92fc-b28c45541390.png)
 
 ### _issue_
 
