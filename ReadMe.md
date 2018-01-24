@@ -687,6 +687,8 @@ if (StateUtil.getInstance().getState()) {   // 로그인을 하고 들어온 경
 
 ### _구조 및 기능_
 
+
+![discussion](https://user-images.githubusercontent.com/31605792/35350389-21a1bcc8-0181-11e8-91f5-36c5e79b86ba.png)
 - 로그인이 되어 있는 사용자들이 자신들의 의견을 기재하는 Activity
 - 의견과 의견에 대한 [댓글 및 좋아요]가 가능하다.(댓글, 대댓글의 구조)
 
@@ -1055,7 +1057,7 @@ Bus.getInstance().post(data);
     }
 
 ```
-## GroupActivity
+## GroupActivity(in GroupFragment)
 
 ### _구조 및 기능_
 
@@ -1068,7 +1070,6 @@ Bus.getInstance().post(data);
 - 로그인, 로그아웃 시, 그룹멤버일때와 아닐때에 따라 다른 이벤트 처리
 - [joinGroups]라는 버튼을 누르면 message를 보낼 수 있는 창으로 변하면서, GroupFragment my Groups 카테고리 밑에 해당 item이 추가
 - recyclerView scroll 시에 데이터를 특정 개수만큼만 받아오는 이슈
-
 
 ### _How to solve?_
 
@@ -1353,3 +1354,11 @@ public class GroupCommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 }
 ```
+## DiscoverFragment(in MainActivity)
+
+### _구조 및 기능_
+
+![discover](https://user-images.githubusercontent.com/31605792/35350625-d99c5ed2-0181-11e8-82e1-27e0f0dae6d3.png)
+
+### _issue_
+### _How to solve?_
