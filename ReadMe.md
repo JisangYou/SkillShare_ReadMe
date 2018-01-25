@@ -1782,7 +1782,7 @@ public class RetrofitHelper {
 
 ### ConstantUtil
 
-> __key,value값을 의미있는 Naming을 통해 관리하는 class__
+> __key, code 등 명시적으로 관리해야 할 필요가 있는 것들을 모아놓은 class__
 
 - Sample Code
 
