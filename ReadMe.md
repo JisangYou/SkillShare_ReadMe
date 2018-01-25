@@ -114,7 +114,7 @@ if(!ValidationUtil.isEmpty(token)) {
 
 ### _구조 및 기능_
 
-![signin](https://user-images.githubusercontent.com/31605792/35350274-c9d2f75a-0180-11e8-930f-514c96be12a7.png)
+![signin](https://user-images.githubusercontent.com/31605792/35381518-e8e5ff78-01ff-11e8-95c7-331910d371b6.png)
 - 일반 로그인과 google 로그인을 하는 로직이 담긴 Activity
 
 ### _issue_
@@ -183,7 +183,7 @@ Observable<CharSequence> o1 = RxTextView.textChanges(editTextEmail);
 
 ### _구조 및 기능_
 
-![signup](https://user-images.githubusercontent.com/31605792/35350272-c9792e46-0180-11e8-9d4a-88c1096c43de.png)
+![signup](https://user-images.githubusercontent.com/31605792/35381517-e8c048f0-01ff-11e8-9437-8a59c821fc21.png)
 - 회원가입 과정을 통해 서버에 해당 정보를 등록하는 기능을 가진 Activity
 
 ### _issue_
@@ -1570,7 +1570,6 @@ public void uploadImageFile(String path) {
 > __StartActivityForResult,onActivityResult 그리고 FlexBoxLayout Library로 SelectSkillsActivity의 선택한 Skill들이 MeFragment에 세팅되는 효과처리__
 
 - SelectSkillsActivity 로직
-- 
 
 ```Java
 
@@ -1671,5 +1670,73 @@ public void uploadImageFile(String path) {
                                 }
                         );
             } 
+
+```
+
+## SearchActivity
+
+### _구조 및 기능_
+
+- 검색 기능을 가진 Activity이다.
+![search](https://user-images.githubusercontent.com/31605792/35381526-ee6a276c-01ff-11e8-86cb-8ab51bb269ae.png)
+
+### _issue_
+
+- 어떤 방식으로 검색기능 화면을 구성할지와 서버 통신
+- smartPhone keyboard 관련 로직 
+
+### _How to solve?_
+
+> __검색 문자를 Retrofit @Path로 서버에 보내서 처리__
+
+```Java
+    // ...전략
+    String searchContent;
+
+    editTextSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if(actionId == EditorInfo.IME_ACTION_SEARCH) {
+                if(searchContent.length() >= 3) {
+                    // TODO show progress bar
+                    RetrofitHelper.createApi(ClassService.class)
+                            .search(searchContent)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    (List<SearchClass> searchClasses) -> searchRecyclerViewAdapter.setData(searchClasses),
+                                    (Throwable error) -> Log.e("search error", error.getMessage())
+                            );
+
+                    editTextSearch.setText("");
+                } else {
+                    Toast.makeText(SearchActivity.this, "your search is too short\n(minimum is 3 characters.)", Toast.LENGTH_LONG).show();
+                }
+            }
+            return false;
+        });
+```
+
+- 클래스 모델을 관리 하는 API
+- TODO Tutor 이름으로도 검색하는게 필요함.
+
+```Java
+  @GET("class/search/{content}")
+    Observable<List<SearchClass>> search(@Path("content") String searchContent);
+
+```
+
+> __setOnKeyListener로 처리__
+
+- TODO Rxbinding으로 활용해보기
+- TODO 오류 수정
+
+```Java
+
+editTextSearch.setOnKeyListener((v, keyCode, event) -> {
+            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+
+                return true;
+            }
+            return true;
+        });
 
 ```
