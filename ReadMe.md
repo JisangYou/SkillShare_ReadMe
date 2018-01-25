@@ -1644,7 +1644,6 @@ public void uploadImageFile(String path) {
 
     //... 전략
     personalize.setOnClickListener(v -> startActivityForResult(new Intent(context, SelectSkillsActivity.class), ConstantUtil.SELECT_SKILLS_REQUEST_CODE));
-    // 
 
     //... 중략
 
@@ -1739,4 +1738,237 @@ editTextSearch.setOnKeyListener((v, keyCode, event) -> {
             return true;
         });
 
+```
+
+
+
+
+
+
+## Util성 class 
+
+### RetrofitHelper
+
+> __앱전반에 고루 사용되는 retrofit의 통신 모듈화를 위해 만든 클래스__
+
+- Sample Code
+
+```Java
+public class RetrofitHelper {
+
+    public static final String BASE_URL = "해당 url";
+
+    // OkHttpClient - 통신과정에서 나타나는 내용들을 로그에 띄여줌.
+    private static OkHttpClient.Builder httpClient = new OkHttpClient.Builder() 
+            .addInterceptor(getLoggingInterceptor())
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS);
+
+    // Retrofit Builder
+    private static Retrofit.Builder builder =new Retrofit.Builder()
+                                                         .client(httpClient.build())
+                                                         .baseUrl(BASE_URL)
+                                                         .addConverterFactory(GsonConverterFactory.create())
+                                                         .addCallAdapterFactory(RxJava2CallAdapterFactory.create());
+    // Retrofit
+    private static Retrofit retrofit = builder.build();
+
+    //...하략
+}
+```
+
+
+
+### ConstantUtil
+
+> __key,value값을 의미있는 Naming을 통해 관리하는 class__
+
+- Sample Code
+
+```Java
+public class ConstantUtil {
+    // Register Action
+    public static final String REGISTRATION = "registration";
+    public static final String RECEIVED = "received";
+
+    // Permission
+    public static final int PERMISSION_REQUEST_CODE = 7;
+
+    public static final int REQUEST_CODE_SIGN_IN = 239;
+    // general
+    public static final String SUCCESS = "success";
+    public static final String FAILURE = "failure";
+
+    // Sign up
+    public static final String SIGN_UP_SUCCESS = "sign-up success";
+    public static final String SIGN_UP_BY_GOOGLE = "sign-up with google";
+    public static final String ALREADY_EXISTED_EMAIL = "response : already existed email address";
+
+    // ... 하략
+}
+```
+
+### DialogUtil
+
+> __dialog를 관리하는 class__
+
+- Sample Code
+
+```java
+
+// ...전략
+
+ public static void showSignDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        View view = LayoutInflater.from(context).inflate(R.layout.dialog_sign, null, false);
+
+        view.findViewById(R.id.button_sign_in).setOnClickListener(
+                v -> context.startActivity(new Intent(context, SignInActivity.class))
+        );
+
+        view.findViewById(R.id.button_sign_up).setOnClickListener(
+                v -> context.startActivity(new Intent(context, SignUpActivity.class))
+        );
+
+        builder.setView(view).show();
+    }
+```
+
+
+### preferenceUtil
+
+> __preferenece를 관리하는 class__
+
+- Sample Code
+
+```Java
+public class PreferenceUtil {
+
+    private static final String filename = "skill_share_pref";
+
+    private static SharedPreferences getPreference(Context context) {
+        return context.getSharedPreferences(filename, Context.MODE_PRIVATE);
+    }
+
+    public static void setBooleanValue(Context context, String key, boolean value) {
+        SharedPreferences.Editor editor = getPreference(context).edit();
+        editor.putBoolean(key, value);
+        editor.commit();
+        //editor.remove(key); 삭제하기
+    }
+
+    public static void setStringValue(Context context, String key, String value) {
+        SharedPreferences.Editor editor = getPreference(context).edit();
+        editor.clear();
+        editor.putString(key, value);
+        editor.commit();
+    }
+
+    public static Boolean getBooleanValue(Context context, String key) {
+        return getPreference(context).getBoolean(key,false);
+    }
+
+    public static String getStringValue(Context context, String key) {
+        return getPreference(context).getString(key,"");
+    }
+}
+
+```
+
+### stateUtil
+
+> __사용자(나) 정보를 싱글톤패턴으로 관리하는 클래스__
+
+- Sample Code
+
+```Java
+public class StateUtil {
+
+    private static User user;
+    private static StateUtil stateUtil;
+
+    // singleton
+    private StateUtil() {
+        user = new User();
+    }
+
+    public static StateUtil getInstance() {
+        if(stateUtil == null) {
+            stateUtil = new StateUtil();
+        }
+        return stateUtil;
+    }
+
+    // get sign in state
+    private static boolean state;
+
+    public boolean getState() {
+        return state;
+    }
+
+    private void setState(boolean isSignIn) {
+        state = isSignIn;
+    }
+
+    public void setUserInstance(User user) {
+        if(user == null) {
+            Log.d("JUWONLEE", "set user null");
+            this.user = null;
+            setState(false);
+        } else {
+            Log.d("JUWONLEE", "set user not null");
+            this.user = user;
+            setState(true);
+        }
+    }
+
+    // get user state
+    public User getUserInstance() {
+        return user;
+    }
+}
+```
+
+### TimeUtil
+
+> __가공되지 않은 숫자로 들어오는 [시간]을 원하는 형식으로 바꿔주기 위한 클래스__
+
+- Sample Code
+
+```Java
+public class TimeUtil {
+
+    public static String calculateTime(String timeString) {
+        long time = System.currentTimeMillis() - Long.parseLong(timeString);
+
+        if(time < 60000) // 1분 이내면
+            return "Just now";
+        else if(time >= 60000 && time < 120000) // 1분 이상 2분 미만
+            return "1 minute ago";
+        else if(time >= 120000 && time < 3600000) // 2분 이상 1시간 미만
+            return (time / 60000) + " minutes ago";
+        else if(time >= 3600000 && time < 7200000) // 1시간 이상 2시간 미만
+            return "An hour ago";
+        //...중략
+    }
+    //...하략
+```
+
+### ValidationUtil
+
+> __로그인 및 회원가입 시에 이메일과 비밀번호에 입력 조건을 주기위한 클래스(정규식을 사용)__
+
+- Sample Code
+
+```Java
+public class ValidationUtil {
+    private static final Pattern EMAIL_REGEX = Pattern.compile("^[_0-9a-zA-Z-]+@[0-9a-zA-Z-]+(.[_0-9a-zA-Z-]+)*$");
+   
+   //...중략
+
+    public static boolean isValidEmailAddress(String email_address) {
+        return EMAIL_REGEX.matcher(email_address).matches();
+    }
+}
 ```
