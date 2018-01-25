@@ -1,11 +1,11 @@
 # SkillShare 사용 기술 stack
 
-__목차__
+## __목차__
 
-1. __사용 library__
-2. __Application Structure__
-3. __Application Analysis__
-4. __Util성 Class__
+### 1. __사용 library__
+### 2. __Application Structure__
+### 3. __Application Analysis__
+### 4. __Utility Class__
 
 # 1. 사용 Library
 
@@ -1748,7 +1748,7 @@ editTextSearch.setOnKeyListener((v, keyCode, event) -> {
 
 ```
 
-# 4. Util성 class 
+# 4. Utility Class 
 
 ### RetrofitHelper
 
