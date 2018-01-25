@@ -1,10 +1,18 @@
 # SkillShare 사용 기술 stack
 
-### 사용 Library
+__목차__
+
+1. 사용 library
+2. Application Structure
+3. Application Analysis
+4. Util성 Class
+
+# 1. 사용 Library
 
 #### Layout 및 뷰 관련 library
 
 - cardview
+- recyclerView
 - bottom navigation
 - togglebutton
 - flexboxLayout
@@ -41,11 +49,11 @@
 
 - lambda
 
-## Application structure
+# 2. Application structure
 
 - 사진첨부
 
-# Application analysis
+# 3. Application analysis
 
 
 ## Splash Activity
@@ -1740,12 +1748,7 @@ editTextSearch.setOnKeyListener((v, keyCode, event) -> {
 
 ```
 
-
-
-
-
-
-## Util성 class 
+# 4. Util성 class 
 
 ### RetrofitHelper
 
