@@ -1359,6 +1359,317 @@ public class GroupCommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 ### _구조 및 기능_
 
 ![discover](https://user-images.githubusercontent.com/31605792/35350625-d99c5ed2-0181-11e8-82e1-27e0f0dae6d3.png)
+- 앱 제작자 측에서 사용자를 위해 서비스하는 컨텐츠(추천 클래스)
 
 ### _issue_
+
+- 화면 구성
+
 ### _How to solve?_
+
+> __기존에 만들어 놓은 homeFragment와 ClassActivity에 만들어 놓은 UI와 비슷한 점이 많아 해당 로직을 참고해서 처리__
+
+- 위에 코드들 참조해서 만들었기 때문에 설명은 생략한다.
+
+## YourClassFragment(in MainActivity)
+
+### _구조 및 기능_
+
+- 수정 중
+
+### _issue_
+
+- 동영상 다운로드 관련 로직
+
+### _How to solve?_
+
+- 수정 중
+
+
+## MeFragment(in MainActivity) + SelelctSkillsActivity
+
+### _구조 및 기능_
+
+![mefragment](https://user-images.githubusercontent.com/31605792/35375192-8215dd56-01e9-11e8-8cf3-fb79b5e8696c.png)
+- 왼쪽에 있는 사진이 MeFragment로써, 사용자(나)의 프로필 정보가 담겨있는 구조이다.
+- 오른쪽에 있는 사진은 SelectSkillsActivity로써, Skill들을 선택할 수 있다. 선택된 Skill들을 meFragment에 추가되고, homeFragment에도 역시 카테고리 영역으로 추가된다. 
+
+### _issue_
+
+- mobile내장 앨범에서 사진 불러와 세팅 및 파일로 만들어 서버로 전송
+- SelectSkillsActivity에서 선택한 skill들이 MeFragment에 세팅되는 이슈 및 서버통신
+
+### _How to solve?_
+
+> __Permission 체크,암시적 Intent 그리고 startActivityForResult로 내장앨범에서 사진 불러오는 처리하고, 파일로 만들어 Multipart로 서버에 전송하는 방법으로 처리__
+
+- 내장 앨범에서 이미지 불러오는 로직(_내장앨범이 열림_)
+
+```Java
+
+public void getImageFile() {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_PICK);
+        intent.setType("image/*");
+
+        startActivityForResult(intent, ConstantUtil.GALLERY_REQUEST_CODE);
+    }
+
+```
+- startActivityForResult로 보낸 코드를 onActivityResult에서 받아서 처리하는 로직(_내장 앨범이 View에 세팅됨_)
+
+```java
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+       
+       // 중략...
+
+        if (requestCode == ConstantUtil.GALLERY_REQUEST_CODE) {
+                if(data != null && data.getData() != null) {
+                    Uri imageUri = data.getData();
+                    String imagePath = getPathFromUri(imageUri); // uri를 String타입으로 변환. 이는 Json이 String타입이므로 이에 맞춰 주기 위함이다. 
+
+                    Glide.with(context)
+                            .load(new File(imagePath)) // 이미지파일로 만들어져있는 경로에서 이미지로딩
+                            .apply(RequestOptions.circleCropTransform())
+                            .into(meImage);
+
+                    uploadImageFile(imagePath); // 이미지의 경로를 통해 파일로 만드는 함수이다.
+                }
+            }
+        } 
+    }
+
+```
+
+- 내장앨범에서 받아온 Uri를 String으로 변환하는 코드
+
+```Java
+
+ private String getPathFromUri(Uri uri) {
+        try (
+                Cursor cursor =
+                     context.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA},
+                             null, null, null)
+        ) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+```
+
+- 서버로 이미지를 파일로 만들어 전송하는 코드
+
+```Java
+
+public void uploadImageFile(String path) {
+        File imageFile = new File(path); // 파일로 만들어서
+
+    // 멀티 파트로 해당 파일을 보내기 위한 로직들 
+        RequestBody requestFile =
+                RequestBody.create(
+                        MediaType.parse("image/*"),
+                        imageFile
+                );
+
+        MultipartBody.Part body =
+                MultipartBody.Part.createFormData(
+                        "image",
+                        imageFile.getName(),
+                        requestFile
+                );
+    // -----------------------------------------------------
+        RetrofitHelper.createApi(UserService.class)
+                .uploadImageFile(user.get_id(), body)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        (Response response) -> {
+                            if(ConstantUtil.FAILURE.equals(response.getResult())) {
+                                // TODO SHOW ERROR PAGE
+                            }
+                        }, (Throwable error) -> {
+
+                        }
+                );
+    }
+
+```
+
+- Multipart관련 Retrofit Api
+- (참고) node-js서버에서는 connet-multiparty라는 npm 모듈을 사용해서, 해당 파일 받아서 localFile에 저장했고, 이러한 이유로 glide로 로딩할때 New File(이미지경로)로 구현했다. 
+
+```Java
+
+    @Multipart
+    @POST("user/uploadImageFile")
+    Observable<Response> uploadImageFile(@Query("userId") String userId, @Part MultipartBody.Part image);
+
+```
+
+- 이미지를 원하는 방식으로 크롭을 하기위해 권한 설정을 해주는 로직
+
+```java
+
+  @TargetApi(Build.VERSION_CODES.M)
+    private void checkPermission() {
+        // 1. 권한이 있는지 여부 확인
+        if (context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            getImageFile();
+            // 진행 허용 처리
+
+            // 2. 권한이 없으면 권한을 요청
+        } else {
+            // 2.1 요청할 권한을 정의
+            String permissions[] = {
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            };
+            // 2.2 권한 요청
+            requestPermissions(permissions, ConstantUtil.REQ_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // 3. 권한 승인 여부 체크
+        switch (requestCode) {
+            case ConstantUtil.REQ_CODE:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 진행 허용 처리
+                    getImageFile();
+                }
+                break;
+        }
+    }
+
+```
+
+- 권한 체크로직을 호출하는 부분
+
+```java
+
+   meImage.setOnClickListener(v -> { // 프로필 사진을 넣는 imageView를 클릭 했을때 권한 체크로직이 호출됨.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                checkPermission();
+            } else {
+                getImageFile();
+            }
+        });
+
+```
+
+> __StartActivityForResult,onActivityResult 그리고 FlexBoxLayout Library로 SelectSkillsActivity의 선택한 Skill들이 MeFragment에 세팅되는 효과처리__
+
+- SelectSkillsActivity 로직
+- 
+
+```Java
+
+    //...View 세팅 과정 생략
+
+    findViewById(R.id.toolbar_close_button).setOnClickListener(view -> { 
+            Intent intent = new Intent();
+            intent.putStringArrayListExtra(ConstantUtil.SKILLS_FLAG, (ArrayList<String>) skills); // 아래 Toggle버튼 클릭시 list에 String값으로 저장된 리스트를 인텐트로 보낸다.
+            setResult(RESULT_OK, intent); // 잘 받았다는 의미이다. 
+            finish(); // finish 중료
+        });
+
+    @Override
+    public void onBackPressed() { // 뒤로가기 버튼 처리
+        Intent intent = new Intent();
+        intent.putStringArrayListExtra(ConstantUtil.SKILLS_FLAG, (ArrayList<String>) skills);
+        setResult(RESULT_OK, intent); 
+        finish();
+
+        super.onBackPressed();
+    }
+
+    private void setAlreadyCheckedSkills(List<String> skills) {
+        for(int i=0; i<skills.size(); i++) {
+            switch (skills.get(i)) {
+                case "Design":
+                    toggleButtonDesign.setChecked(true);
+                    break;
+                case "Photography":
+                    toggleButtonPhotography.setChecked(true);
+                    break;
+               //...이하 반복 구문 생략
+            }
+        }
+    }
+
+    private void addSkill(String skill) {
+        skills.add(skill);
+    }
+
+    private void removeSkill(String skill) {
+        skills.remove(skill);
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        int id = buttonView.getId();
+        switch (id) {
+            case R.id.toggle_design:
+                if(isChecked)
+                    addSkill("Design");
+                else
+                    removeSkill("Design");
+                break;
+            case R.id.toggle_photography:
+                if(isChecked)
+                    addSkill("Photography");
+                else
+                    removeSkill("Photography");
+                break;
+           // ... 이하 반복 구문 생략
+    }
+```
+
+- Mefragment 로직
+![ActivityResult](https://mblogthumb-phinf.pstatic.net/20111130_277/0677haha_1322630612164qOxEP_PNG/%B1%D7%B8%B21.png?type=w2)
+- 사진으로 설명을 대체한다.
+- 출처 : https://m.blog.naver.com/PostView.nhn?blogId=0677haha&logNo=60141449535&proxyReferer=https%3A%2F%2Fwww.google.co.kr%2F
+
+
+```Java
+
+    //... 전략
+    personalize.setOnClickListener(v -> startActivityForResult(new Intent(context, SelectSkillsActivity.class), ConstantUtil.SELECT_SKILLS_REQUEST_CODE));
+    // 
+
+    //... 중략
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == RESULT_OK) { // SelectSkillsActivity에서 RESULT_OK이고
+            if(requestCode == ConstantUtil.SELECT_SKILLS_REQUEST_CODE ) {// MeFragment에서 보낸 코드가 다음과 같으면,
+                List<String> skills = data.getStringArrayListExtra(ConstantUtil.SKILLS_FLAG); // 이하 로직 실행.
+
+                RetrofitHelper.createApi(UserService.class)
+                        .followSkills(user.get_id(), skills)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                (Response response) -> {
+                                    if(ConstantUtil.SUCCESS.equals(response.getResult())) {
+                                        user.setFollowingSkills(skills);
+                                        adapter.update(user.getFollowingSkills());
+                                    }
+                                }, (Throwable error) -> {
+
+                                }
+                        );
+            } 
+
+```
