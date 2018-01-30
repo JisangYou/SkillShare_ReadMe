@@ -1,4 +1,4 @@
-# SkillShare 사용 기술 stack(이미지 수정 및 yourClassFragmnet 보완 및 부분적으로 보완이 필요한 부분 수정중, homeseeall및followskill따른)!!!!
+# SkillShare 사용 기술 stack
 
 ## __목차__
 
